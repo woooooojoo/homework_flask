@@ -19,8 +19,12 @@ def connet_db():
 	rv. row_factory = squlite3.row_factory
 	return rv
 
-if _name_ == '__main' :
-	app.run()
+def init_db():
+	with app.app_context():
+		db = get_db()
+		with app.open_resource('schema.sql', mode ='r') as f:
+			db.
+
 
 def get_db():
 	if not hasattr(g, 'sqlite_db'):
@@ -30,3 +34,5 @@ def get_db():
 def close_db(error) :
 	if hasattr(g, 'sqlite_db'):
 		g.sqlite_db.close()
+
+
