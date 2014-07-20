@@ -21,3 +21,12 @@ def connet_db():
 
 if _name_ == '__main' :
 	app.run()
+
+def get_db():
+	if not hasattr(g, 'sqlite_db'):
+		g.sqlite_db = connect_db()
+	return g.sqlite_db
+
+def close_db(error) :
+	if hasattr(g, 'sqlite_db'):
+		g.sqlite_db.close()
