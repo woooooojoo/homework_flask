@@ -1,5 +1,7 @@
 
 import os
+import re
+import json
 from sqlite3 import dbapi2 as sqlite3
 from flask import Flask, request, session, g, redirect, url_for, abort, \
      render_template, flash
@@ -65,20 +67,46 @@ def add_entry():
     flash('New entry was successfully posted')
     return redirect(url_for('show_entries'))
 
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
     if request.method == 'POST':
-        if request.form['username'] != app.config['USERNAME']:
-            error = 'Invalid username'
-        elif request.form['password'] != app.config['PASSWORD']:
-            error = 'Invalid password'
-        else:
-            session['logged_in'] = True
-            flash('You were logged in')
-            return redirect(url_for('show_entries'))
+        test_repeat_e=[]
+        test_repeat_p=[]
+        f = open('users.text',"r")
+        data=f.read()
+        users=json.loads(data)
+        
+        for i in users:
+            em=i['email']
+            pa=i['password']
+            test_repeat_e.append(em)
+            test_repeat_p.append(pa)  
+        f.close()              
+        if request.form['email'] not in test_repeat_e:
+            error="email or password is wrong please re-write."
+
+        else : 
+            if request.form['password'] not in test_repeat_p :
+                error="email or password is wrong please re-write."
+            else:
+                info={}
+                info['email']=request.form['email']
+                info['password']=request.form['password']
+                info_values=info.values()
+                find_values=[]
+                for i in users:
+                    ival=i.values()
+                    find_values.append(ival)
+
+                if info_values in find_values :
+                    session['logged_in'] = True
+                    flash('You were logged in')
+                    return redirect(url_for('show_entries'))
+                else:
+                    error="email or password is wrong please re-write."
     return render_template('login.html', error=error)
+
 
 
 @app.route('/logout')
@@ -86,6 +114,88 @@ def logout():
     session.pop('logged_in', None)
     flash('You were logged out')
     return redirect(url_for('show_entries'))
+
+
+
+@app.route('/signup', methods=['GET','POST'])
+def signup():
+    message = None
+    if request.method == "POST" :
+        if request.form['email'] =="":
+            message = "Email is empty" 
+        elif request.form['password']=="":
+            message = "Password is empty"
+        elif request.form['password_check']=="":
+            message = "Password is empty"
+        elif bool(re.search("\w+(\@)\w+(.com|.ac.kr|.net)", request.form['email']))==False:
+            message ="retry to write email "
+        elif request.form['password']!="":
+            if len(request.form['password']) < 8 or len(request.form['password']) >20 :
+                message="retry to write password"
+            elif bool(re.search("[a-z]+",request.form['password'])) == False:
+                message="retry to write password"
+            elif bool(re.search("[A-Z]+",request.form['password'])) == False:
+                message="retry to write password"
+            elif bool(re.search("[0-9]+",request.form['password'])) == False:
+                message="retry to write password"
+            elif bool(re.search("\W+",request.form['password'])) == False:
+                message="retry to write password"
+            elif request.form['password'] != request.form['password_check'] :
+                message="retry to write password check"
+            else :
+                if os.path.exists("users.text") == True:
+                   
+                    users=[]
+                    test_repeat=[]
+                    f=open("users.text","r")
+                    data=f.read()
+                    open_users=json.loads(data)
+
+
+                    for user_dic in open_users:
+                        users.append(user_dic)
+
+                    for user in open_users:
+                        x = user['email']
+                        test_repeat.append(x)
+                    f.close()
+
+
+
+                    if request.form['email'] in test_repeat:
+                        message= "This email is already used."
+                    else:
+                        message= "Sign up successful"
+                        info={}
+                        info['email']=request.form['email']
+                        info['password']=request.form['password']
+
+                        users.append(info) 
+                        f=open("users.text","w")
+                        f.write(json.dumps(users))
+                        f.close()
+
+                else:                    
+                    message= "Sign up successful"
+                    users=[]
+                    info={}
+                    info['email']=request.form['email']
+                    info['password']=request.form['password']
+
+                    users.append(info) 
+                    f=open("users.text","w")
+                    f.write(json.dumps(users))
+                    f.close()
+
+
+    return render_template('signup.html', message = message)  
+
+
+
+
+
+
+
 
 if __name__ == '__main__':
 	app.run()
