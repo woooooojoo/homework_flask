@@ -1,6 +1,6 @@
 <!doctype html>
 <title>Flaskr</title>
-<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/style.css') }}">
 <div class=page>
   <h1>Flaskr</h1>
   <div class=metanav>
@@ -8,7 +8,15 @@
     <a href="{{ url_for('login') }}">log in</a>
     <a href="{{ url_for('signup') }}">Sign up</a>
   {% else %}
-    <a href="{{ url_for('logout') }}">log out</a>
+    {% if session.admin %}
+      <a href="{{ url_for('userslist')}}">list</a>
+      <a href="{{ url_for('logout') }}">log out</a>
+      <p> welcome {{session.email}} </p>
+
+    {% else %}
+        <a href="{{ url_for('logout') }}">log out</a>
+        <p> welcome {{session.email}} </p>
+    {% endif %}
   {% endif %}
   </div>
   {% for message in get_flashed_messages() %}

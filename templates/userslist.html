@@ -1,0 +1,20 @@
+<h1>userslist</h2>
+
+<form action="{{ url_for('userslist') }}" method=post>
+<table>
+<th>email</th>
+<th>password</th>
+<th>admin</th>
+{% for user in userslist %}
+
+<tr>
+  <td>{{user.email}}</td>
+
+  <td>{{user.password}}</td>  
+
+  <td>{{user.admin}}</td>
+
+{% endfor %}
+</tr>
+</table>
+</form>

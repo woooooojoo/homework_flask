@@ -71,42 +71,32 @@ def add_entry():
 def login():
     error = None
     if request.method == 'POST':
-        test_repeat_e=[]
-        test_repeat_p=[]
+
         f = open('users.text',"r")
         data=f.read()
         users=json.loads(data)
-        
+        f.close()
         for i in users:
-            em=i['email']
-            pa=i['password']
-            test_repeat_e.append(em)
-            test_repeat_p.append(pa)  
-        f.close()              
-        if request.form['email'] not in test_repeat_e:
-            error="email or password is wrong please re-write."
-
-        else : 
-            if request.form['password'] not in test_repeat_p :
-                error="email or password is wrong please re-write."
-            else:
-                info={}
-                info['email']=request.form['email']
-                info['password']=request.form['password']
-                info_values=info.values()
-                find_values=[]
-                for i in users:
-                    ival=i.values()
-                    find_values.append(ival)
-
-                if info_values in find_values :
+   
+            if i['email'] == request.form['email'] and i['password']==request.form['password'] :
+                
+                if i['admin'] == True:
+                    session['admin']=True
                     session['logged_in'] = True
+                    session['email'] = request.form['email']
                     flash('You were logged in')
                     return redirect(url_for('show_entries'))
-                else:
-                    error="email or password is wrong please re-write."
-    return render_template('login.html', error=error)
+                else :
+                    session['admin']=False
+                    session['logged_in'] = True
+                    session['email'] = request.form['email']
+                    flash('You were logged in')
+                    return redirect(url_for('show_entries'))
 
+
+            else:
+                error="email or password is wrong please re-write."
+    return render_template('login.html', error=error)
 
 
 @app.route('/logout')
@@ -152,6 +142,7 @@ def signup():
                     open_users=json.loads(data)
 
 
+                    answers_admin = 'admin' in request.form
                     for user_dic in open_users:
                         users.append(user_dic)
 
@@ -161,26 +152,37 @@ def signup():
                     f.close()
 
 
-
                     if request.form['email'] in test_repeat:
                         message= "This email is already used."
                     else:
-                        message= "Sign up successful"
+                        # if 'admin' in request.form: line145
+                        #     answers_admin = True
+                        # else :
+                        #     answers_admin = False  
+                        message= "Sign up successful "
+
                         info={}
                         info['email']=request.form['email']
                         info['password']=request.form['password']
+                        info['admin']= answers_admin
+
 
                         users.append(info) 
                         f=open("users.text","w")
                         f.write(json.dumps(users))
                         f.close()
 
-                else:                    
+                else:   
+                    if 'admin' in request.form:
+                        answers_admin = True
+                    else :
+                        answers_admin = False              
                     message= "Sign up successful"
                     users=[]
                     info={}
                     info['email']=request.form['email']
                     info['password']=request.form['password']
+                    info['admin']=answers_admin
 
                     users.append(info) 
                     f=open("users.text","w")
@@ -190,7 +192,37 @@ def signup():
 
     return render_template('signup.html', message = message)  
 
+@app.route('/userslist', methods=['GET','POST'])
+def userslist():
+    if session['admin'] == True:
+        userslist=None
+        f=open('users.text','r')
+        data=f.read()
+        userslist=json.loads(data)
+        return render_template('userslist.html',userslist=userslist)
+    else:
+        return redirect(url_for('show_entries'))
 
+@app.route('/email_check',methods=['GET','POST'])
+def email_check():
+    f=open('users.text','r')
+    data=f.read()
+    userslist=json.loads(data)
+    result={}
+    for user in userslist:
+        email=user['email']
+        if email == request.form['email']:
+            result['message'] = "this email is already existed."
+            return json.dumps(result)
+    result['message']="Okay"
+    return json.dumps(result)
+    #result['message']="Okay" 
+    #for user in userslist:
+    #     email=user[email]
+    #     if email == request.form['email']:
+    #         result['message'] = "this email is already existed."
+    # return json.dumps(result)
+ 
 
 
 

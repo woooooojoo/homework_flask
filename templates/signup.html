@@ -1,15 +1,25 @@
 {% extends "layout.html" %}
 {% block body %}
+<script src="{{url_for('static',filename='js/jquery.js')}}"></script>
+<script src ="{{url_for('static',filename='js/signupcheck.js')}}"></script>
+<script src="{{url_for('static',filename='js/ajax.js')}}"></script>
+
   <h2>Signup</h2>
   {% if message %}<p class=error><strong>Message:</strong> {{ message }}{% endif %}
   <form action="{{ url_for('signup') }}" method=post>
     <dl>
       <dt>Email:
-      <dd><input type=text name="email">
+      <dd><input type=text id='email' name="email">
+      <p id='emailcheck' style='display:none; color:red' > email is invaild.</p>
+      <p id='emailalready' style='display:none; color:red'> email is already existed.</p>
       <dt>Password:
-      <dd><input type=password name="password">
+      <dd><input type=password id= 'password' name="password">
+      <p id='passwordcheck' style='display:none; color:red'> password is invaild.</p>
       <dt>Password Check:
-      <dd><input type=password name="password_check">
+      <dd><input type=password id='password_check' name="password_check">
+      <p id='password_checkcheck' style='display:none;color:red'> password check is different from password.</p>
+      <dt>Admin:
+      <dd><input type=checkbox name="admin">
       <dd><input type=submit value="Sign Up">
     </dl>
   </form>
